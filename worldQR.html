@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags for better search engine ranking -->
+    <title>Ultimate QR Code Generator | Free & Instant Custom QR Codes</title>
+    <meta name="description" content="A free, high-performance QR code generator to create custom QR codes for URLs, Wi-Fi, vCards, Text, and more. Customize colors, add your logo, and download in high-resolution PNG or SVG formats instantly.">
+    <meta name="keywords" content="qr code generator, free qr code, custom qr code, qr code with logo, vanilla javascript, web app, qr code for wifi, vcard qr code, high performance qr code">
+    <link rel="canonical" href="https://your-website.com/qr-generator" /> <!-- Replace with your final URL -->
+    
+    <!-- Open Graph / Facebook Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-website.com/qr-generator">
+    <meta property="og:title" content="Ultimate QR Code Generator | Free & Instant Custom QR Codes">
+    <meta property="og:description" content="Instantly create and customize QR codes. Add logos, change colors, and download in high-resolution formats for free.">
+    
+    <!-- Twitter Meta Tags -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-website.com/qr-generator">
+    <meta property="twitter:title" content="Ultimate QR Code Generator | Free & Instant Custom QR Codes">
+    <meta property="twitter:description" content="Instantly create and customize QR codes. Add logos, change colors, and download in high-resolution formats for free.">
+
+    <!-- QR Code Library -->
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    
+    <!-- Styles: Clean, readable, and matching the requested UI -->
+    <style>
+        :root {
+            --primary-color: #29b6f6; /* Soft Teal */
+            --secondary-color: #ab47bc; /* Soft Purple */
+            --background-color: #f7f8fc;
+            --surface-color: #ffffff;
+            --text-color: #555e68;
+            --light-grey: #f0f2f5;
+            --border-radius-large: 24px;
+            --border-radius-medium: 16px;
+            --border-radius-small: 12px;
+            --soft-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header { text-align: center; padding: 1.5rem; }
+        header h1 { color: #333; font-size: 2rem; font-weight: 600; }
+        
+        footer { margin-top: auto; text-align: center; padding: 1.5rem; color: var(--secondary-color); font-size: 0.9rem; }
+
+        .main-container { display: flex; flex: 1; padding: 1rem 2rem; gap: 2rem; }
+
+        .options-column, .preview-column {
+            background-color: var(--surface-color);
+            padding: 2.5rem;
+            border-radius: var(--border-radius-large);
+            box-shadow: var(--soft-shadow);
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .options-column h2, .options-column h3 {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--light-grey);
+            font-size: 1.3rem;
+        }
+        
+        .options-column h3 { font-size: 1.1rem; margin-top: 2rem; }
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label { display: block; margin-bottom: 0.75rem; font-weight: 500; font-size: 0.9rem; }
+
+        .input-group input[type="text"],
+        .input-group input[type="url"],
+        .input-group input[type="email"],
+        .input-group input[type="tel"],
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            background-color: var(--light-grey);
+            border-radius: var(--border-radius-small);
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            transition: box-shadow 0.2s;
+        }
+        
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(41, 182, 246, 0.4);
+        }
+
+        .input-group textarea { resize: vertical; min-height: 80px; }
+        .error-message { color: #ef5350; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+
+        .qr-type-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+        .qr-type-selector button {
+            flex-grow: 1;
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background-color: var(--light-grey);
+            color: var(--text-color);
+            border: none;
+            border-radius: var(--border-radius-small);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .qr-type-selector button:hover { transform: translateY(-2px); background-color: #e0e4e8; }
+        .qr-type-selector button.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(41, 182, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .input-section { display: none; }
+        .input-section.active { display: block; }
+        
+        .flex-group { display: flex; gap: 1rem; align-items: center; }
+        .flex-group > div { flex: 1; }
+        
+        input[type="color"] {
+            width: 100%;
+            height: 50px;
+            padding: 0.3rem;
+            border: none;
+            border-radius: var(--border-radius-small);
+            background: var(--light-grey);
+            cursor: pointer;
+        }
+        
+        .preview-column { align-items: center; justify-content: center; }
+        
+        #qr-code-frame {
+            padding: 0;
+            background: transparent;
+            border-radius: var(--border-radius-medium);
+            text-align: center;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        #qr-code-container { width: 100%; height: auto; aspect-ratio: 1 / 1; margin: 0 auto; }
+        #frame-text-preview { font-weight: 600; color: var(--text-color); margin-top: 15px; font-size: 1.2rem; display: none; }
+        
+        .download-buttons { margin-top: 2.5rem; display: flex; gap: 1rem; width: 100%; max-width: 350px; }
+        
+        .btn {
+            flex-grow: 1;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--border-radius-small);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn:hover { transform: translateY(-3px); opacity: 0.9; }
+        
+        .btn-primary { background-color: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(41, 182, 246, 0.3); }
+        .btn-secondary { background-color: var(--secondary-color); color: white; box-shadow: 0 4px 15px rgba(171, 71, 188, 0.3); }
+        .btn-danger { background-color: #ef5350; color: white; box-shadow: 0 4px 15px rgba(239, 83, 80, 0.3); }
+
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
+
+        @media (max-width: 1200px) {
+            .main-container { padding: 1rem; }
+            .options-column, .preview-column { padding: 2rem; }
+        }
+        @media (max-width: 992px) {
+            .main-container { flex-direction: column; }
+            .options-column, .preview-column { width: 100%; }
+            .preview-column { margin-top: 2rem; }
+        }
+        @media (max-width: 480px) {
+            body { font-size: 14px; }
+            header h1 { font-size: 1.5rem; }
+            .main-container { padding: 1rem 0.5rem; }
+            .options-column, .preview-column { padding: 1.5rem; }
+            .flex-group, .download-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Ultimate QR Code Generator</h1>
+    </header>
+
+    <main class="main-container">
+        <!-- Left Column: User Inputs & Customization -->
+        <section class="options-column" aria-labelledby="options-heading">
+            <h2 id="options-heading" class="sr-only">QR Code Options</h2>
+            
+            <!-- Accessible Tabs for QR Code Type -->
+            <div class="input-group">
+                <label>1. Content Type</label>
+                <div class="qr-type-selector" role="tablist" aria-label="QR Code Content Type">
+                    <button class="active" data-type="url" role="tab" aria-selected="true" aria-controls="url-input">URL</button>
+                    <button data-type="text" role="tab" aria-selected="false" aria-controls="text-input">Text</button>
+                    <button data-type="wifi" role="tab" aria-selected="false" aria-controls="wifi-input">Wi-Fi</button>
+                    <button data-type="vcard" role="tab" aria-selected="false" aria-controls="vcard-input">vCard</button>
+                    <button data-type="email" role="tab" aria-selected="false" aria-controls="email-input">Email</button>
+                    <button data-type="sms" role="tab" aria-selected="false" aria-controls="sms-input">SMS</button>
+                </div>
+            </div>
+
+            <div id="input-fields">
+                <!-- URL Input Panel -->
+                <div id="url-input" class="input-section active" role="tabpanel" aria-labelledby="url-tab">
+                    <div class="input-group">
+                        <label for="url">Website URL</label>
+                        <input type="url" id="url" placeholder="https://example.com" required>
+                        <div id="url-error" class="error-message">Please enter a valid URL.</div>
+                    </div>
+                </div>
+                <!-- Other panels follow the same structure -->
+                <div id="text-input" class="input-section" role="tabpanel" aria-labelledby="text-tab"><div class="input-group"><label for="text">Your Text</label><textarea id="text" placeholder="Enter any text..."></textarea></div></div>
+                <div id="wifi-input" class="input-section" role="tabpanel" aria-labelledby="wifi-tab"><div class="input-group"><label for="wifi-ssid">Network Name (SSID)</label><input type="text" id="wifi-ssid"></div><div class="input-group"><label for="wifi-password">Password</label><input type="text" id="wifi-password"></div><div class="input-group"><label for="wifi-encryption">Encryption</label><select id="wifi-encryption"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option></select></div></div>
+                <div id="vcard-input" class="input-section" role="tabpanel" aria-labelledby="vcard-tab"><div class="flex-group"><div class="input-group"><label for="vcard-fn">First Name</label><input type="text" id="vcard-fn"></div><div class="input-group"><label for="vcard-ln">Last Name</label><input type="text" id="vcard-ln"></div></div><div class="input-group"><label for="vcard-tel">Phone</label><input type="tel" id="vcard-tel"></div><div class="input-group"><label for="vcard-email">Email</label><input type="email" id="vcard-email"></div><div class="input-group"><label for="vcard-org">Company</label><input type="text" id="vcard-org"></div><div class="input-group"><label for="vcard-url">Website</label><input type="url" id="vcard-url"></div></div>
+                <div id="email-input" class="input-section" role="tabpanel" aria-labelledby="email-tab"><div class="input-group"><label for="email-to">Recipient Email</label><input type="email" id="email-to"></div><div class="input-group"><label for="email-subject">Subject</label><input type="text" id="email-subject"></div><div class="input-group"><label for="email-body">Body</label><textarea id="email-body"></textarea></div></div>
+                <div id="sms-input" class="input-section" role="tabpanel" aria-labelledby="sms-tab"><div class="input-group"><label for="sms-tel">Phone Number</label><input type="tel" id="sms-tel"></div><div class="input-group"><label for="sms-msg">Message</label><textarea id="sms-msg"></textarea></div></div>
+            </div>
+
+            <h3>2. Design</h3>
+            <div class="flex-group"><div class="input-group"><label for="color-fg">Dot Color</label><input type="color" id="color-fg" value="#000000"></div><div class="input-group"><label for="color-bg">Background</label><input type="color" id="color-bg" value="#ffffff"></div></div>
+            <div class="input-group"><label>Logo</label><div class="flex-group"><button id="logo-upload-btn" class="btn btn-secondary">Upload</button><button id="logo-remove-btn" class="btn btn-danger">Remove</button><input type="file" id="logo-upload" accept="image/png, image/jpeg, image/svg+xml" style="display: none;" aria-hidden="true"></div></div>
+            <div class="input-group"><label for="dot-style">Dot Style</label><select id="dot-style"><option value="square">Square</option><option value="dots">Dots</option><option value="rounded">Rounded</option><option value="extra-rounded">Extra Rounded</option><option value="classy">Classy</option><option value="classy-rounded">Classy Rounded</option></select></div>
+            <div class="flex-group"><div class="input-group"><label for="corner-square-style">Eye Corner</label><select id="corner-square-style"><option value="square">Square</option><option value="dot">Dot</option><option value="extra-rounded">Extra Rounded</option></select></div><div class="input-group"><label for="corner-dot-style">Eye Dot</label><select id="corner-dot-style"><option value="square">Square</option><option value="dot">Dot</option></select></div></div>
+            <div class="input-group" style="display: flex; align-items: center; gap: 10px;"><label for="frame-toggle" style="margin-bottom: 0;">Add Frame</label><input type="checkbox" id="frame-toggle" style="transform: scale(1.3);"></div>
+            <div id="frame-options" style="display:none;"><div class="input-group"><label for="frame-text">Frame Text</label><input type="text" id="frame-text" placeholder="SCAN ME!"></div></div>
+        </section>
+
+        <!-- Right Column: QR Code Preview & Download -->
+        <section class="preview-column" aria-labelledby="preview-heading">
+            <h2 id="preview-heading" class="sr-only">QR Code Preview and Download</h2>
+            <div id="qr-code-frame"><div id="qr-code-container" role="img" aria-label="Live QR Code Preview"></div><p id="frame-text-preview"></p></div>
+            <div class="download-buttons"><button id="download-png" class="btn btn-primary">Download PNG</button><button id="download-svg" class="btn btn-secondary">Download SVG</button></div>
+        </section>
+    </main>
+
+    <footer><p>Created with AI</p></footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            /**
+             * Debounce function to limit the rate at which a function gets called.
+             * This is crucial for performance to prevent the QR code from regenerating
+             * on every single keystroke, which caused the freezing issue.
+             */
+            function debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), delay);
+                };
+            }
+
+            // --- DOM Element References ---
+            const qrTypeSelector = document.querySelector('.qr-type-selector');
+            const inputFieldsContainer = document.getElementById('input-fields');
+            const urlInput = document.getElementById('url');
+            const urlError = document.getElementById('url-error');
+            const qrContainer = document.getElementById('qr-code-container');
+            const qrFrame = document.getElementById('qr-code-frame');
+            const frameTextPreview = document.getElementById('frame-text-preview');
+            // ... other element references
+            const colorFg = document.getElementById('color-fg'), colorBg = document.getElementById('color-bg'), dotStyle = document.getElementById('dot-style');
+            const cornerSquareStyle = document.getElementById('corner-square-style'), cornerDotStyle = document.getElementById('corner-dot-style');
+            const logoUploadBtn = document.getElementById('logo-upload-btn'), logoUploadInput = document.getElementById('logo-upload'), logoRemoveBtn = document.getElementById('logo-remove-btn');
+            const frameToggle = document.getElementById('frame-toggle'), frameOptions = document.getElementById('frame-options'), frameText = document.getElementById('frame-text');
+            const downloadPngBtn = document.getElementById('download-png'), downloadSvgBtn = document.getElementById('download-svg');
+
+            // --- State ---
+            let qrCode;
+            let currentQrType = 'url';
+            let logoImage = null;
+
+            /**
+             * Generates or updates the QR code based on the current settings.
+             */
+            const generateQRCode = () => {
+                try {
+                    const data = getQrData();
+                    if (!data) {
+                        qrContainer.innerHTML = `<p style="text-align:center; padding: 2rem; color: var(--secondary-color);">Enter content to see your QR code.</p>`;
+                        return;
+                    }
+                    
+                    const containerWidth = qrContainer.offsetWidth;
+                    const qrOptions = {
+                        width: containerWidth, height: containerWidth, type: 'svg', data: data, image: logoImage,
+                        dotsOptions: { color: colorFg.value, type: dotStyle.value },
+                        backgroundOptions: { color: colorBg.value },
+                        imageOptions: { crossOrigin: 'anonymous', margin: 10, imageSize: 0.3 },
+                        cornersSquareOptions: { type: cornerSquareStyle.value, color: colorFg.value },
+                        cornersDotOptions: { type: cornerDotStyle.value, color: colorFg.value }
+                    };
+                    
+                    if (qrCode) qrCode.update(qrOptions);
+                    else {
+                        qrCode = new QRCodeStyling(qrOptions);
+                        qrCode.append(qrContainer);
+                    }
+                } catch (error) {
+                    console.error("QR Code Generation Error:", error);
+                    qrContainer.innerHTML = '<p class="error-message" style="display:block; text-align:center;">Error: Data is too long for a QR code.</p>';
+                }
+            };
+            
+            // Create a debounced version of the generator for text inputs.
+            const debouncedGenerateQRCode = debounce(generateQRCode, 300);
+
+            /**
+             * Gathers and formats data from the currently active input fields.
+             * Contains the improved, safer URL validation logic.
+             */
+            const getQrData = () => {
+                switch (currentQrType) {
+                    case 'url':
+                        const originalUrl = urlInput.value;
+                        if (!originalUrl) return '';
+                        let testUrl = originalUrl;
+                        if (!/^https?:\/\//i.test(testUrl)) testUrl = 'https://' + testUrl;
+                        try {
+                            new URL(testUrl); // Use native URL parser for robust validation
+                            urlError.style.display = 'none';
+                            return originalUrl; // Return the user's original input
+                        } catch (e) {
+                            urlError.style.display = 'block';
+                            return ''; // Invalid URL
+                        }
+                    case 'text': return document.getElementById('text').value;
+                    case 'wifi': return `WIFI:T:${document.getElementById('wifi-encryption').value};S:${document.getElementById('wifi-ssid').value};P:${document.getElementById('wifi-password').value};;`;
+                    case 'vcard': return `BEGIN:VCARD\nVERSION:3.0\nN:${document.getElementById('vcard-ln').value};${document.getElementById('vcard-fn').value}\nFN:${document.getElementById('vcard-fn').value} ${document.getElementById('vcard-ln').value}\nORG:${document.getElementById('vcard-org').value}\nTEL;TYPE=WORK,VOICE:${document.getElementById('vcard-tel').value}\nEMAIL:${document.getElementById('vcard-email').value}\nURL:${document.getElementById('vcard-url').value}\nEND:VCARD`;
+                    case 'email': return `mailto:${encodeURIComponent(document.getElementById('email-to').value)}?subject=${encodeURIComponent(document.getElementById('email-subject').value)}&body=${encodeURIComponent(document.getElementById('email-body').value)}`;
+                    case 'sms': return `SMSTO:${document.getElementById('sms-tel').value}:${encodeURIComponent(document.getElementById('sms-msg').value)}`;
+                    default: return '';
+                }
+            };
+
+            // --- Event Listeners ---
+            qrTypeSelector.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') return;
+                currentQrType = e.target.dataset.type;
+                
+                qrTypeSelector.querySelectorAll('button').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                });
+                e.target.classList.add('active');
+                e.target.setAttribute('aria-selected', 'true');
+                
+                inputFieldsContainer.querySelectorAll('.input-section').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${currentQrType}-input`).classList.add('active');
+                
+                generateQRCode(); // Generate immediately on type change
+            });
+
+            // Use the debounced function for text inputs to ensure smooth performance
+            document.querySelectorAll('input[type="text"], input[type="url"], input[type="email"], input[type="tel"], textarea').forEach(input => {
+                input.addEventListener('input', debouncedGenerateQRCode);
+            });
+            
+            // Use immediate generation for controls that don't fire rapidly
+            document.querySelectorAll('select, input[type="color"], input[type="checkbox"]').forEach(input => {
+                input.addEventListener('change', generateQRCode);
+            });
+            
+            logoUploadBtn.addEventListener('click', () => logoUploadInput.click());
+            logoUploadInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = () => { logoImage = reader.result; generateQRCode(); };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            logoRemoveBtn.addEventListener('click', () => { logoImage = null; logoUploadInput.value = ''; generateQRCode(); });
+            frameToggle.addEventListener('change', (e) => {
+                const isEnabled = e.target.checked;
+                frameOptions.style.display = isEnabled ? 'block' : 'none';
+                qrFrame.style.padding = isEnabled ? '25px' : '0';
+                qrFrame.style.background = isEnabled ? colorBg.value : 'transparent';
+                qrFrame.style.boxShadow = isEnabled ? 'var(--soft-shadow)' : 'none';
+                frameTextPreview.style.display = isEnabled && frameText.value ? 'block' : 'none';
+            });
+            frameText.addEventListener('input', (e) => {
+                if (frameToggle.checked) {
+                    frameTextPreview.textContent = e.target.value;
+                    frameTextPreview.style.display = e.target.value ? 'block' : 'none';
+                }
+            });
+            colorBg.addEventListener('input', (e) => { if (frameToggle.checked) qrFrame.style.background = e.target.value; });
+
+            downloadPngBtn.addEventListener('click', () => qrCode?.download({ name: 'qrcode', extension: 'png' }));
+            downloadSvgBtn.addEventListener('click', () => qrCode?.download({ name: 'qrcode', extension: 'svg' }));
+            
+            // Responsive QR code resizing
+            window.addEventListener('resize', debouncedGenerateQRCode);
+
+            // --- Initial Generation on page load ---
+            generateQRCode();
+        });
+    </script>
+
+</body>
+</html>
